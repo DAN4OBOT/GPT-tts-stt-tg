@@ -9,14 +9,11 @@ from validators import check_token_limits, check_block_limits, check_char_limits
 bot = telebot.TeleBot(TOKEN)
 db = Database('bot_data.db')
 
-# Включение/выключение отладочного режима
 debug_mode = {}
 
-# Список разрешенных пользователей
 AUTHORIZED_USERS = set()
 MAX_USERS = 10
 
-# История сообщений
 user_histories = {}
 
 
@@ -24,7 +21,7 @@ def add_to_history(user_id, message):
     if user_id not in user_histories:
         user_histories[user_id] = []
     user_histories[user_id].append(message)
-    if len(user_histories[user_id]) > 2:  # Ограничение на количество сообщений в истории
+    if len(user_histories[user_id]) > 2: 
         user_histories[user_id].pop(0)
 
 
@@ -34,7 +31,7 @@ def filter_greeting(message):
 
 
 def clean_message(text):
-    return re.sub(r'[*]', '', text)  # Удаление символа *
+    return re.sub(r'[*]', '', text)  
 
 
 def filter_response(response):
@@ -44,7 +41,7 @@ def filter_response(response):
 
 
 def is_new_topic(user_id, message):
-    keywords = ["апельсин", "автомобиль", "фрукт", "машина"]  # Пример списка ключевых слов
+    keywords = ["апельсин", "автомобиль", "фрукт", "машина"] 
     if user_id not in user_histories or len(user_histories[user_id]) == 0:
         return True
     last_message = user_histories[user_id][-1]
@@ -59,18 +56,15 @@ def get_chat_history(user_id):
     if not history:
         return ""
 
-    # Создаем новый список, где сообщения переставлены
     reordered_history = []
     for i in range(0, len(history), 2):
         if i + 1 < len(history):
-            # Добавляем сначала сообщение пользователя, потом ответ бота
-            reordered_history.append(history[i + 1])  # Сообщение бота
-            reordered_history.append(history[i])  # Сообщение пользователя
+            reordered_history.append(history[i + 1])  
+            reordered_history.append(history[i])  
         else:
-            # Если нечетное количество сообщений, добавляем оставшееся сообщение пользователя
             reordered_history.append(history[i])
 
-    return "\n".join(reversed(reordered_history))  # Убедитесь, что порядок соответствует последовательно
+    return "\n".join(reversed(reordered_history))  
 
 
 @bot.message_handler(commands=['start'])
@@ -220,7 +214,6 @@ def handle_voice(message):
         else:
             bot.reply_to(message, "Ошибка при создании аудио ответа.")
 
-        # Сохранение сообщений в базе данных после отправки ответа
         db.save_message(user_id, f"user: {text}", "voice")
         db.save_message(user_id, f"bot: {response_text}", "text")
     except Exception as e:
@@ -296,7 +289,6 @@ def handle_text(message):
         if debug_mode.get(user_id, False):
             bot.reply_to(message, f"[DEBUG] Текст ответа: {response_text}")
 
-        # Сохранение сообщений в базе данных после отправки ответа
         db.save_message(user_id, f"user: {clean_text}", "text")
         db.save_message(user_id, f"bot: {response_text}", "text")
     except Exception as e:
